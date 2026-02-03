@@ -23,6 +23,3 @@ env/
 # OS
 .DS_Store
 Thumbs.db
-
-# PDFs (large binary files)
-*.pdf
