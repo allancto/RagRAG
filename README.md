@@ -2,6 +2,48 @@
 
 A RAG system for learning about RAG. RagRAG collects and indexes information about how to build, use, and maintain Retrieval Augmented Generation systems.
 
+## Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/allancto/RagRAG.git
+cd RagRAG
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Build the vector store
+python scripts/setup.py
+
+# 4. Set your API key (for generation)
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
+
+# 5. Query the RAG
+python -c "from src.rag import query_rag; print(query_rag('How do I evaluate a RAG system?'))"
+```
+
+## Setup Details
+
+The repository includes the corpus files (PDFs + framework docs) but **not** the vector store. You must run the setup script to build it:
+
+```bash
+python scripts/setup.py
+```
+
+This script:
+1. **Ingests corpus files** - Parses the 25 PDFs and framework markdown docs, creates embeddings, stores in ChromaDB
+2. **Fetches paper summaries** - Gets metadata from Semantic Scholar for additional RAG papers
+3. **Fetches community content** - Downloads recent Reddit posts and StackOverflow questions about RAG
+
+The setup takes a few minutes (mostly embedding generation). Once complete, you'll have ~800 chunks in your vector store.
+
+**Options:**
+```bash
+python scripts/setup.py --skip-community  # Skip Reddit/StackOverflow (faster)
+python scripts/setup.py --skip-papers     # Skip Semantic Scholar summaries
+```
+
 ## Corpus Statistics
 
 | Document Type | Chunks |
@@ -11,7 +53,7 @@ A RAG system for learning about RAG. RagRAG collects and indexes information abo
 | Community (StackOverflow) | 100 |
 | Framework docs | 31 |
 | Paper summaries (metadata) | 14 |
-| **Total** | **809** |
+| **Total** | **~809** |
 
 **Source Files:**
 - 25 academic papers (PDFs)
@@ -57,8 +99,9 @@ A RAG system for learning about RAG. RagRAG collects and indexes information abo
 
 ### Community Content
 
-- **100 Reddit posts** from r/LocalLLaMA, r/MachineLearning, r/LangChain
-- **100 StackOverflow questions** on RAG, vector databases, LangChain, LlamaIndex, ChromaDB
+Fetched fresh during setup:
+- **~100 Reddit posts** from r/LocalLLaMA, r/MachineLearning, r/LangChain
+- **~100 StackOverflow questions** on RAG, vector databases, LangChain, LlamaIndex, ChromaDB
 
 ## Architecture
 
@@ -79,8 +122,11 @@ src/
   semantic_scholar.py  # Paper discovery & hybrid ingestion
   community.py      # Reddit/StackOverflow fetching
 
+scripts/
+  setup.py          # Build vector store from corpus
+
 data/
-  chroma/           # Persistent vector store
+  chroma/           # Persistent vector store (created by setup.py)
 ```
 
 ## Hybrid Paper Ingestion
@@ -95,7 +141,16 @@ See [docs/Hybrid-Paper-Ingestion.md](docs/Hybrid-Paper-Ingestion.md) for details
 
 ## Usage
 
-### Ingest Documents
+### Query the RAG
+
+```python
+from src.rag import query_rag
+
+response = query_rag("How do I evaluate a RAG system?")
+print(response)
+```
+
+### Manual Ingestion
 
 ```python
 from src.ingest import ingest_directory
@@ -104,15 +159,6 @@ from src.store import add_chunks
 # Ingest all documents from corpus
 chunks = ingest_directory('./corpus')
 add_chunks(chunks)
-```
-
-### Query the RAG
-
-```python
-from src.rag import query_rag
-
-response = query_rag("How do I evaluate a RAG system?")
-print(response)
 ```
 
 ### Discover Papers
@@ -160,3 +206,4 @@ Configuration options in `config.py`:
 - PyPDF2
 - BeautifulSoup4
 - anthropic (for generation)
+- requests (for API fetching)
