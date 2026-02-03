@@ -256,8 +256,8 @@ def ingest_directory(
         try:
             chunks = ingest_document(str(file_path), chunk_size=chunk_size, overlap_ratio=overlap_ratio)
             all_chunks.extend(chunks)
-            print(f"✓ Ingested {file_path.name}: {len(chunks)} chunks")
+            print(f"[OK] Ingested {file_path.name}: {len(chunks)} chunks")
         except Exception as e:
-            print(f"✗ Failed to ingest {file_path.name}: {e}")
+            print(f"[ERROR] Failed to ingest {file_path.name}: {e}")
 
     return all_chunks
